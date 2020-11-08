@@ -1,0 +1,13 @@
+diff --git a/include/configs/nuc980_iot.h b/include/configs/nuc980_iot.h
+index 71825ad..cf53055 100644
+--- a/include/configs/nuc980_iot.h
++++ b/include/configs/nuc980_iot.h
+@@ -53,7 +53,7 @@
+ 
+ /*#define CONFIG_HW_WATCHDOG*/
+ 
+-#define CONFIG_SYS_BOOTM_LEN		0x1000000 /* 16MB max kernel size */
++#define CONFIG_SYS_BOOTM_LEN		0x1400000 /* 20MB max kernel size */
+ 
+ /*#define CONFIG_BOOTDELAY	3*/
+ 
