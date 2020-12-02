@@ -30,7 +30,7 @@ try:
     import matplotlib.pyplot as plt
 except ImportError:
     sys.stderr.write("You need python-matplotlib to generate the size graph\n")
-    exit(1)
+    #exit(0)
 
 colors = ['#e60004', '#009836', '#2e1d86', '#ffed00',
           '#0068b5', '#f28e00', '#940084', '#97c000']

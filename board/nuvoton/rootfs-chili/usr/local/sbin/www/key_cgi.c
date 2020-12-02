@@ -24,11 +24,11 @@
 #include <unistd.h>
 
 //For NK-980IOT board
-//#define KEY1_NUM	0x8A //PE10
-//#define KEY2_NUM	0x8C //PE12
+#define KEY1_NUM	0x8A //PE10
+#define KEY2_NUM	0x8C //PE12
 
 //For chili board
-#define KEY1_NUM	0x4F //PC15
+//#define KEY1_NUM	0x4F //PC15
 
 int main(void)
 {

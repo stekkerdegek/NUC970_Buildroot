@@ -24,15 +24,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#if 0
 //For NK-980IOT board
 #define LED1_NUM	0x28 //PB8--->LED3
 #define LED2_NUM	0x2D //PB13--->LED5
-#endif
 
 //For chili board
-#define LED1_NUM	0x4B //PC11--->LED1
-#define LED2_NUM	0x43 //PC3--->LED2
+//#define LED1_NUM	0x4B //PC11--->LED1
+//#define LED2_NUM	0x43 //PC3--->LED2
 
 #if 0		
 //For NuDesign-EtherU and NuDesign-EtherD
