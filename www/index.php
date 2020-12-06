@@ -1,69 +1,98 @@
-<?php 
-$title = "Dashboard";
-$id = 0;
+<?php
 
-include 'header.php';
+require_once('lib/limonade.php');
 
-?>
+function configure() {
+    $env = $_SERVER['HTTP_HOST'] == 'library.dev' ? ENV_DEVELOPMENT : ENV_PRODUCTION;
+    $dsn = $env == ENV_PRODUCTION ? 'sqlite:db/dev.db' : 'sqlite:db/dev.db';
+    $db = new PDO($dsn);
+    $db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING );
+    option('env', $env);
+    option('dsn', $dsn);
+    option('db_conn', $db);
+    option('debug', true);
+}
 
-<div class="content">
-    <div class="container-fluid">
-       <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Master controller</h4>
-                        <p class="card-category">Use this controller to configure your network</p>
-                    
-        <form action="test/form.sh" method="get">
-            Choose backlight value: <br>
-            <input id="slider1" type="range" name="pwm" min="0" max="7" step="1" onchange="textbox1.value = slider1.value" /><br>
-            <input id="textbox1" type="text" /><br>
-            <input type="submit" value="Change it!">
-        </form>
+function after($output) {
+    $time = number_format( (float)substr(microtime(), 0, 10) - LIM_START_MICROTIME, 6);
+    $output .= "<!-- page rendered in $time sec., on " . date(DATE_RFC822)."-->";
+    return $output;
+}
 
-<a href="https://docs.google.com/document/d/1ZOc3w04Ov9EECDrhrmd3qmBAxG5lbiUyGuRfasSbtHw/edit" target="docs">Here</a> you can find extra documentation
-                    </div>
-                    <div class="card-body">
-                                This controller has
-                        <div class="typography-line">
-                            <p>
-                                <span>Hardware</span>
+function not_found($errno, $errstr, $errfile=null, $errline=null)
+{
+  $html = '<p><img src="'
+        //. public_url_for('/img/error-404.jpg')
+        . '" alt="Fout 404: '
+        . h($errstr)
+        . '"></p>';
+  set('title', 'FOUT 404');
+  return html($html);
+}
 
-                                <ul>
-                                    <li>2 relays inputs - to connect to doorlocks</li>
-                                    <li>2 wiegand inputs - to connect to keypad or NFC reader</li>
-                                    <li>UTP connector - to connect to an LAN</li>
-                                    <li>A voltage in - to connect 12 or 24V</li>
-                                </ul>
+function server_error($errno, $errstr, $errfile=null, $errline=null)
+{
+  $html = '<p>'
+        . $errno . "<br>"
+        . $errstr . "<br>"
+        . $errfile . "<br>"
+        . $errline . "<br>"
+        . '</p>';
+  set('title', 'FOUT 500');
+  return html($html);
+}
 
-                            </p>
-                        </div>
-                        <div class="typography-line">
-                            <span>Configuration</span>
-                            <blockquote>
-                                <p class="blockquote blockquote-primary">
-                                    <ol>
-                                    <li>Add doors from this Master controller, or from other Slave controllers</li>
-                                    <li>Add timezones (24h and working hours are predefined)</li>
-                                    <li>Create groups with timezones</li>
-                                    <li>Create users and assign them to a group</li>
-                                    <li>Add keypad code or NFC token to the user</li>
-                                </ol>
-                                    <br>
-                                    <br>
-                                    <small>
-                                        - these pages are mockups, to show future possibilities
-                                    </small>
-                                </p>
-                            </blockquote>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>              
-        </div>
-    </div>
-</div>
+layout('layout/default.html.php');
 
-<?php include 'footer.php';?>
+// main controller
+dispatch('/', 'main_page');
+dispatch('dash', 'dashboard_page');
+function dashboard_page() {
+    return html('dashboard.html.php');
+}
+dispatch('doors', 'doors_page');
+function doors_page() {
+    return html('doors.html.php');
+}
+dispatch('events', 'events_page');
+function events_page() {
+    return html('events.html.php');
+}
+dispatch('groups', 'groups_page');
+function groups_page() {
+    return html('groups.html.php');
+}
+dispatch('reports', 'reports_page');
+function reports_page() {
+    return html('reports.html.php');
+}
+dispatch('timezones', 'timezones_page');
+function timezones_page() {
+    return html('timezones.html.php');
+}
+dispatch('users', 'users_page');
+function users_page() {
+    return html('users.html.php');
+}
+//dispatch('info', phpinfo());
+
+
+// books controller
+dispatch_get   ('books',          'books_index');
+dispatch_post  ('books',          'books_create');
+dispatch_get   ('books/new',      'books_new');
+dispatch_get   ('books/:id/edit', 'books_edit');
+dispatch_get   ('books/:id',      'books_show');
+dispatch_put   ('books/:id',      'books_update');
+dispatch_delete('books/:id',      'books_destroy');
+
+// authors controller
+dispatch_get   ('authors',          'authors_index');
+dispatch_post  ('authors',          'authors_create');
+dispatch_get   ('authors/new',      'authors_new');
+dispatch_get   ('authors/:id/edit', 'authors_edit');
+dispatch_get   ('authors/:id',      'authors_show');
+dispatch_put   ('authors/:id',      'authors_update');
+dispatch_delete('authors/:id',      'authors_destroy');
+
+run();
