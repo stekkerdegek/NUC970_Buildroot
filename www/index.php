@@ -46,6 +46,7 @@ layout('layout/default.html.php');
 
 // main controller
 dispatch('/', 'main_page');
+//dispatch('/:id', 'main_page');
 dispatch('dash', 'dashboard_page');
 function dashboard_page() {
     return html('dashboard.html.php');
@@ -76,6 +77,9 @@ function users_page() {
 }
 //dispatch('info', phpinfo());
 
+// gpio controller
+dispatch_get   ('gpio/:id/:state',  'gpio_state');
+dispatch_get   ('gpio_key',  'gpio_key');
 
 // books controller
 dispatch_get   ('books',          'books_index');

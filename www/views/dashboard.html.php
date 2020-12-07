@@ -10,16 +10,22 @@ set('title', 'Dashboard');
                 <div class="card">
                     <div class="card-header">
                         <h4 class="card-title">Master controller</h4>
-                        <p class="card-category">Use this controller to configure your network</p>
+                        <p class="card-category">Turn leds on/off on the nuc board gpio 40&45 </p>
                     
-        <form action="test/form.sh" method="get">
-            Choose backlight value: <br>
-            <input id="slider1" type="range" name="pwm" min="0" max="7" step="1" onchange="textbox1.value = slider1.value" /><br>
-            <input id="textbox1" type="text" /><br>
-            <input type="submit" value="Change it!">
-        </form>
+                        <center>
+                        Red:
 
-<a href="https://docs.google.com/document/d/1ZOc3w04Ov9EECDrhrmd3qmBAxG5lbiUyGuRfasSbtHw/edit" target="docs">Here</a> you can find extra documentation
+                        <a class="btn btn-info btn-sm" href="/?/gpio/45/0">On</a>
+                        <a class="btn btn-danger btn-sm" href="/?/gpio/45/1">Off</a>
+
+                        Yellow:
+                        <a class="btn btn-info btn-sm" href="/?/gpio/40/0">On</a>
+                        <a class="btn btn-danger btn-sm" href="/?/gpio/40/1">Off</a>
+                               
+                        </center>
+
+                        <a href="https://docs.google.com/document/d/1ZOc3w04Ov9EECDrhrmd3qmBAxG5lbiUyGuRfasSbtHw/edit" target="docs">Here</a> you can find extra documentation
+
                     </div>
                     <div class="card-body">
                                 This controller has
@@ -59,7 +65,6 @@ set('title', 'Dashboard');
                 </div>
             </div>
         </div>              
-        </div>
     </div>
 </div>
 

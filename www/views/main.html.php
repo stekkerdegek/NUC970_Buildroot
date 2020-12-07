@@ -3,61 +3,45 @@ set('id', -1);
 set('title', 'Main');
 ?>
 
-
-<center>
-<strong>Desk lights:
-<form action="index.php">
-        <input type="submit" class="btn btn-info btn-lg" value="On" name="r-on">
-        <input type="submit" class="btn btn-danger btn-lg" value="Off" name="r-off">
-</form>
-Fan:
-<form action="index.php">
-        <input type="submit" class="btn btn-info btn-lg" value="On" name="w-on">
-        <input type="submit" class="btn btn-danger btn-lg" value="Off" name="w-off">
-</form>
-Switch 3:
-<form action="index.php">
-        <input type="submit" class="btn btn-info btn-lg" value="On" name="sw3-on">
-        <input type="submit" class="btn btn-danger btn-lg" value="Off" name="sw3-off">
-</form>
-Switch 4:</strong>
-<form action="index.php">
-        <input type="submit" class="btn btn-info btn-lg" value="On" name="sw4-on">
-        <input type="submit" class="btn btn-danger btn-lg" value="Off" name="sw4-off">
-</form>
-</center>
-<?php
-if(isset($_GET['r-on'])){
-        $gpio_on = shell_exec('gpio write 1 1');
-}
-else if(isset($_GET['r-off'])){
-        $gpio_off = shell_exec('gpio write 1 0');
-}
-if(isset($_GET['w-on'])){
-        $gpio_on = shell_exec('gpio write 2 1');
-}
-else if(isset($_GET['w-off'])){
-        $gpio_off = shell_exec('gpio write 2 0');
-}
-if(isset($_GET['sw3-on'])){
-        $gpio_on = shell_exec('gpio write 3 1');
-}
-else if(isset($_GET['sw3-off'])){
-        $gpio_off = shell_exec('gpio write 3 0');
-}
-if(isset($_GET['sw4-on'])){
-        $gpio_on = shell_exec('gpio write 4 1');
-}
-else if(isset($_GET['sw4-off'])){
-        $gpio_off = shell_exec('gpio write 4 0');
-}
-?>
-
-
-
-
-
 <ul>
-  <li><?php echo link_to('Authors', 'authors') ?></li>
-  <li><?php echo link_to('Books', 'books') ?></li>
+  <li><?php echo link_to('Users', 'authors') ?></li>
+  <li><?php echo link_to('Reports', 'books') ?></li>
 </ul>
+
+<div id="led_content">  
+	<form id="led_form" name="led_form" action="gpio" method="GET">
+        <table width="300" border="1" align="center">
+            <tr>
+                <td>LED1 Yellow</td>
+                <td>LED2 Red</td>
+            </tr>   
+            <tr>    
+                <td>
+                    <input type="radio" id="LED1" name="40" value="0">ON <br>
+                    <input type="radio" id="LED1" name="40" value="1" checked>OFF
+                </td>
+                <td>
+                    <input type="radio" id="LED2" name="45" value="0">ON <br>
+                    <input type="radio" id="LED2" name="45"	value="1" checked>OFF
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div id="ledimg_content"><hr></div>
+<div id="key_content">
+    <form id="key_form" action="cgi-bin/key.cgi" method="GET">
+		<table width="300" border="1" align="center">
+			<tr>
+				<td>KEY 1</td>
+			</tr>
+			<tr>    
+				<td>    
+					<input type="radio" id="KEY1" name="KEY1" value="1">ON <br>
+					<input type="radio" id="KEY1" name="KEY1" value="0" checked>OFF
+				</td>
+			</tr>
+    	</table>
+    </form>
+</div>
+
