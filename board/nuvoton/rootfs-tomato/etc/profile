@@ -1,3 +1,0 @@
-export PATH=/usr/lib:$PATH
-export PYTHONHOME="/mnt/mmcblk0p1/Python"
-export PYTHONPATH="/usr/lib"
