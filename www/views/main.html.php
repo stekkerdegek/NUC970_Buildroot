@@ -4,8 +4,9 @@ set('title', 'Main');
 ?>
 
 <ul>
-  <li><?php echo link_to('Users', 'authors') ?></li>
-  <li><?php echo link_to('Reports', 'books') ?></li>
+  <li><?php echo link_to('Users', 'users') ?></li>
+  <li><?php echo link_to('Doors', 'doors') ?></li>
+  <li><?php echo link_to('Events', 'events') ?></li>
 </ul>
 
 <div id="led_content">  
