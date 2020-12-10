@@ -14,6 +14,10 @@
 /maasland_app/www			d	755	33	33	-	-	-	-	-
 /etc/shadow				f	600	0	0	-	-	-	-	-
 /etc/passwd				f	644	0	0	-	-	-	-	-
+/etc/ssh/ssh_host_rsa_key		f	600	0	0	-	-	-	-	-
+/etc/ssh/ssh_host_dsa_key		f	600	0	0	-	-	-	-	-
+/etc/ssh/ssh_host_ecdsa_key		f	600	0	0	-	-	-	-	-
+/etc/ssh/ssh_host_ed25519_key		f	600	0	0	-	-	-	-	-
 /etc/network/if-up.d			d	755	0	0	-	-	-	-	-
 /etc/network/if-pre-up.d		d	755	0	0	-	-	-	-	-
 /etc/network/if-down.d			d	755	0	0	-	-	-	-	-
