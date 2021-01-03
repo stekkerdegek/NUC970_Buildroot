@@ -1,0 +1,13 @@
+diff --git a/drivers/mtd/nand/nuc980_nand.c b/drivers/mtd/nand/nuc980_nand.c
+index 0083485f6..350ccbb0a 100644
+--- a/drivers/mtd/nand/nuc980_nand.c
++++ b/drivers/mtd/nand/nuc980_nand.c
+@@ -681,7 +681,7 @@ int board_nand_init(struct nand_chip *nand)
+ 
+ 	// Enable SM_CS0
+ 	writel((readl(REG_SMCSR)&(~0x06000000))|0x04000000, REG_SMCSR);
+-	writel(0x1, REG_NFECR); /* un-lock write protect */
++	writel(0x0, REG_NFECR); /* un-lock write protect */
+ 
+ 	// NAND Reset
+ 	writel(readl(REG_SMCSR) | 0x1, REG_SMCSR);    // software reset

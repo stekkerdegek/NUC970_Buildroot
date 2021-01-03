@@ -12,12 +12,19 @@ APP_PATH=output/build/applications-1.0.0
 #rm output/target/etc/resolv.conf
 #cp -af board/nuvoton/rootfs-chili/* output/target/
 
+#Make Wang test app
 cd board/nuvoton/match/match2_test/drv
 make 
-cd board/nuvoton/match/match2_test/user
+cd ../user
 make
-cd board/nuvoton/match/match2_test/user/uart4&5
+cd uart4\&5
 make
+
+#Back to basedir
+cd ../../../../../../
+
+#cp files to the overlay
+cp -af board/nuvoton/match/match2_test overlay/scripts
 
 if [ -d $APP_PATH ]; then
 	cp $APP_PATH/yaffs2utils/mkyaffs2 output/target/usr/bin/
