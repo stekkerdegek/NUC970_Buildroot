@@ -10,7 +10,7 @@
 #define IOCTL_ETHERNET  _IOW(GPIO_MAGIC,3,int)
 #define IOCTL_UART4  _IOW(GPIO_MAGIC,4,int)
 #define IOCTL_UART5  _IOW(GPIO_MAGIC,5,int)
-#define IOCTL_LED_ALLOFF _IOW(GPIO_MAGIC,6,int)
+#define IOCTL_WIEGAND _IOW(GPIO_MAGIC,6,int)
 #define LED1_PIN       NUC980_PB8
 
 void usage(char *exename)
@@ -73,6 +73,12 @@ int main(int argc,char **argv)
             system("./usr/bin/uart_test uart5");
             ioctl(fd,IOCTL_UART5,count);
         }
+        else if(!strcmp(argv[1],"wiegand"))
+        {
+            printf("argv[1]=wiegand\n");
+            ioctl(fd,IOCTL_WIEGAND,count);
+        }
+
     }
     else
     {

@@ -26,7 +26,7 @@
 #define IOCTL_ETHERNET  _IOW(GPIO_MAGIC,3,int)
 #define IOCTL_UART4  _IOW(GPIO_MAGIC,4,int)
 #define IOCTL_UART5  _IOW(GPIO_MAGIC,5,int)
-#define IOCTL_LED_ALLOFF _IOW(GPIO_MAGIC,6,int)
+#define IOCTL_WIEGAND  _IOW(GPIO_MAGIC,6,int)
 
 
 #define LED1_PIN       NUC980_PB8   //running led
@@ -62,7 +62,7 @@
 #define TIMER_SET    (200*HZ)/1000
 #define timer1_period    (100*HZ)/1000    //100mS
 #define timer2_period    (500*HZ)/1000   //500mS
-
+#define timer3_period    (1*HZ)/1000   //1mS
 
 static int major;
 static struct class *jt_gpio_class;
@@ -70,36 +70,10 @@ static struct device *jt_gpio_device;
 static struct timer_list test_timer;
 static struct timer_list test1_timer;
 static struct timer_list test2_timer;
+static struct timer_list test3_timer;
 
 unsigned char testmode = 0;
 
-/*static void sec_timer_handler(unsigned long arg)
-{
-    mod_timer(&test_timer,jiffies+TIMER_SET);
-    if(ledflag != 0)
-    {
-        gpio_set_value(LED1_PIN,0);
-        ledflag = 0;
-    }
-    else
-    {
-        gpio_set_value(LED1_PIN,1);
-        ledflag = 1;
-    } 
-}
-
-static int led_flash(void)
-{
-    printk(KERN_INFO "Timer init \n");
-    test_timer.function = sec_timer_handler;
-    test_timer.expires = jiffies + TIMER_SET;
-    printk(KERN_INFO "TIMER_SET is %d\n",TIMER_SET);
-
-    init_timer(&test_timer);
-    add_timer(&test_timer);
-
-    return 0;
-}*/
 
 static void timer1_handler(unsigned long arg)
 {
@@ -156,7 +130,7 @@ static void timer1_handler(unsigned long arg)
         value &= ~(0x01<<3);
     } 
 
-    res = gpio_get_value( RD1_D1_PIN );
+/*    res = gpio_get_value( RD1_D1_PIN );
     if(res & ((value & 0x10)==0))
     {
         printk("RD1_D1 pin change to HIGH! \n");
@@ -203,7 +177,7 @@ static void timer1_handler(unsigned long arg)
         printk("RD2_D0 pin change to LOW! \n");
         value &= ~(0x01<<7);
     } 
-
+*/
     res = gpio_get_value( ARM_PIN );
     if(res & ((value & 0x100)==0))
     {
@@ -313,6 +287,177 @@ static void timer2_handler(unsigned long arg)
     }
 }
 
+static int reader1_receiving=0;  
+static int reader1_received_bits=0;
+static unsigned long reader1_receiv_data=0;
+static int reader1_receiv_timecnt = 0;
+
+static int reader2_receiving=0;  
+static int reader2_received_bits=0;
+static unsigned long reader2_receiv_data=0;
+static int reader2_receiv_timecnt = 0;
+
+
+static int check_patity(int num)
+{
+    int bits;
+    unsigned long data;
+    int part_bit;
+    int one_number;
+    int i;
+
+    if(num==1)
+    {
+        bits= reader1_received_bits;
+        data = reader1_receiv_data;
+    }
+    if(num==2)
+    {
+        bits= reader2_received_bits;
+        data= reader2_receiv_data;
+    }
+
+    part_bit = bits/2;
+    one_number = 0;
+
+/*    if((data&0xffffff00)!=0)
+    {
+        return 0;
+    }
+*/
+    if(bits%2)
+    {
+        part_bit++;
+    }
+    for(i=0;i<part_bit;i++)
+    {
+        if((data&(0x01<<i))!=0)
+        {
+            one_number++;
+        }
+    }
+    if((one_number%2)==0)
+    {
+        return 0;
+    }
+
+    one_number=0;
+    for(i=part_bit;i<bits;i++)
+    {
+        if((data&0x01<<i)!=0)
+        {
+            one_number++;
+        }
+    }
+    if((one_number%2)!=0)
+    {
+        return 0;
+    }
+    return 1;
+}
+
+static void press_data(unsigned long data)
+{
+    switch(data&0xff)
+    {
+        case 0x51:
+        gpio_set_value( RELAY1_PIN ,1);
+        gpio_set_value( RD1_GLED_PIN ,1);
+        break;
+        case 0x52:
+        gpio_set_value( RELAY2_PIN ,1);
+        gpio_set_value( RD2_GLED_PIN ,1);
+        break;
+        case 0x61:
+        gpio_set_value( RELAY1_PIN ,0);
+        gpio_set_value( RD1_GLED_PIN ,0);
+        break;
+        case 0x62:
+        gpio_set_value( RELAY2_PIN ,0);
+        gpio_set_value( RD2_GLED_PIN ,0);
+        break;
+        default:
+        break;
+    }
+}
+
+static void clear_readerdata(int num)
+{
+    if(num==1)
+    {
+        reader1_received_bits=0;
+        reader1_receiv_data=0;
+    }
+    if(num==2)
+    {
+        reader2_received_bits=0;
+        reader2_receiv_data=0;
+    }
+}
+
+static void wieganddata_handler(int num)
+{
+    if(num==1)
+    {
+        if((reader1_received_bits>=26)&&(reader1_received_bits<=37))   //26bits-37bits
+        {
+            if(check_patity(1))  //valid data
+            {
+                reader1_receiv_data &=((0x01<<(reader1_received_bits-1))^0xfffffffff);  //remove first patity
+                reader1_receiv_data >>=1; //remove last patity
+                press_data((unsigned long)(reader1_receiv_data));
+                
+            }
+        }
+    }
+
+    if(num==2)
+    {
+        if((reader2_received_bits>=26)&&(reader2_received_bits<=37))   //26bits-37bits
+        {
+            if(check_patity(2))
+            {
+                reader2_receiv_data &=((0x01<<(reader2_received_bits-1))^0xfffffffff);  //remove first patity
+                reader2_receiv_data >>=1; //remove last patity
+                press_data((unsigned long)(reader2_receiv_data));
+                
+            }
+        }
+    }
+}
+
+
+
+static void timer3_handler(unsigned long arg)
+{
+    
+    mod_timer(&test3_timer,jiffies+timer3_period);
+    if(reader1_receiving)
+    {
+        reader1_receiv_timecnt++;
+        if(reader1_receiv_timecnt>=10)  //10msec no wiegand signal
+        {
+            reader1_receiv_timecnt=0;
+            reader1_receiving=0;  //receiv finish
+            wieganddata_handler(1);
+            printk("Reader1 Wiegand received finish,received %d bits,receiced data %lui.\n",reader1_received_bits,reader1_receiv_data);
+            clear_readerdata(1);  //clear received data
+        }
+    }
+    if(reader2_receiving)
+    {
+        reader2_receiv_timecnt++;
+        if(reader2_receiv_timecnt>=10)  //10msec no wiegand signal
+        {
+            reader2_receiv_timecnt=0;
+            reader2_receiving=0;  //receiv finish
+            wieganddata_handler(2);
+            printk("Reader2 Wiegand received finish,received %d bits,receiced data %lui.\n",reader2_received_bits,reader2_receiv_data);
+            clear_readerdata(2);  //clear received data
+        }
+    }
+}
+
 static int all_input_test(void)
 {
     printk(KERN_INFO "Input port begin test,all input port change will message output! \n");
@@ -338,6 +483,58 @@ static int all_output_test(void)
     return 0;
 }
 
+static int wiegand_test(void)
+{
+    printk(KERN_INFO "Test reader1 and reader2 wiegand input,waitting wiegand input!(format:26bits)  \n");
+    test3_timer.function = timer3_handler;
+    test3_timer.expires = jiffies + timer3_period;
+
+    init_timer(&test3_timer);
+    add_timer(&test3_timer);
+
+    gpio_set_value( OUT12V_PIN ,1);  //open reader power
+
+    return 0;
+}
+
+static irqreturn_t RD1_D1IntHandler(int irq,void *dev_id)
+{
+    reader1_receiving=1;
+    reader1_receiv_data <<=1;
+    reader1_receiv_data |=0x01;
+    reader1_received_bits++;
+    reader1_receiv_timecnt=0;
+    return IRQ_HANDLED;
+}
+
+static irqreturn_t RD1_D0IntHandler(int irq,void *dev_id)
+{
+    reader1_receiving=1;
+    reader1_receiv_data <<=1;
+    reader1_received_bits++;
+    reader1_receiv_timecnt=0;
+    return IRQ_HANDLED;
+}
+
+static irqreturn_t RD2_D1IntHandler(int irq,void *dev_id)
+{
+    reader2_receiving=1;
+    reader2_receiv_data <<=1;
+    reader2_receiv_data |=0x01;
+    reader2_received_bits++;
+    reader2_receiv_timecnt=0;
+    return IRQ_HANDLED;
+}
+
+static irqreturn_t RD2_D0IntHandler(int irq,void *dev_id)
+{
+    reader2_receiving=1;
+    reader2_receiv_data <<=1;
+    reader2_received_bits++;
+    reader2_receiv_timecnt=0;
+    return IRQ_HANDLED;
+}
+
 
 static long test_drv_ioctrl(struct file *files,unsigned int cmd,unsigned long arg)
 {
@@ -348,8 +545,11 @@ static long test_drv_ioctrl(struct file *files,unsigned int cmd,unsigned long ar
         case IOCTL_INPUT:
         if(testmode!=1)
         {
+            if(testmode==2)
+                del_timer(&test2_timer);
+            else if(testmode==3)    
+                del_timer(&test3_timer);
             testmode = 1;
-            del_timer(&test2_timer);
             reset_output();
             all_input_test();
         }
@@ -357,13 +557,15 @@ static long test_drv_ioctrl(struct file *files,unsigned int cmd,unsigned long ar
         {
             printk("MATCH2 was in input testting!\n");
         }
-        
         break;
         case IOCTL_OUTPUT:
         if(testmode!=2)
         {
+            if(testmode==1)
+                del_timer(&test1_timer);
+            else if(testmode==3)
+                del_timer(&test3_timer);
             testmode = 2;
-            del_timer(&test1_timer);
             all_output_test();
         }
         else
@@ -374,37 +576,65 @@ static long test_drv_ioctrl(struct file *files,unsigned int cmd,unsigned long ar
         case IOCTL_ETHERNET:
         if(testmode==1)
         {
-            testmode = 0;
             del_timer(&test1_timer);
         }
         else if(testmode==2)
         {
-            testmode = 0;
             del_timer(&test2_timer);
         }
+        else if(testmode==3)
+        {
+            del_timer(&test3_timer);
+        }
+        reset_output();
+        testmode = 0;
         break;
         case IOCTL_UART4:
         if(testmode==1)
-        {
-            testmode = 0;
+        { 
             del_timer(&test1_timer);
         }
         else if(testmode==2)
         {
-            testmode = 0;
             del_timer(&test2_timer);
         }
+        else if(testmode==3)
+        {
+            del_timer(&test3_timer);
+        }
+        reset_output();
+        testmode = 0;
         break;
         case IOCTL_UART5:
         if(testmode==1)
-        {
-            testmode = 0;
+        { 
             del_timer(&test1_timer);
         }
         else if(testmode==2)
         {
-            testmode = 0;
             del_timer(&test2_timer);
+        }
+        else if(testmode==3)
+        {
+            del_timer(&test3_timer);
+        }
+        reset_output();
+        testmode = 0;
+        break;
+        case IOCTL_WIEGAND:
+        if(testmode!=3)
+        {
+            reset_output();
+            if(testmode==1)
+                del_timer(&test1_timer);
+            else if(testmode==2)
+                del_timer(&test2_timer);
+            testmode = 3;
+            wiegand_test();
+        }
+        else
+        {
+            printk("MATCH2 was in wiegand testting!\n");
         }
         break;
 
@@ -438,6 +668,8 @@ static int gpio_init(void)
 {
     int ret;
     int res = 0;
+    int irqno;
+
     ret = gpio_request(LED1_PIN,"LED1_PIN");
     if(ret < 0)
     {
@@ -460,7 +692,10 @@ static int gpio_init(void)
     }
     else
     {
-        gpio_direction_input(RD1_D1_PIN);  //wiegand rd1_d1 set input
+//        gpio_direction_input(RD1_D1_PIN);  //wiegand rd1_d1 set input
+        irqno = gpio_to_irq(RD1_D1_PIN);
+        request_irq(irqno,RD1_D1IntHandler,
+                    IRQF_TRIGGER_RISING,"RD1_D1_PIN",NULL);
     }
     
     ret = gpio_request(RD1_D0_PIN ,"RD1_D0_PIN");
@@ -471,7 +706,10 @@ static int gpio_init(void)
     }
     else
     {
-        gpio_direction_input(RD1_D0_PIN);  //wiegand rd1_d0 set input 
+//        gpio_direction_input(RD1_D0_PIN);  //wiegand rd1_d0 set input 
+        irqno = gpio_to_irq(RD1_D0_PIN);
+        request_irq(irqno,RD1_D0IntHandler,
+                    IRQF_TRIGGER_RISING,"RD1_D0_PIN",NULL);
     }
        
     ret = gpio_request(RD1_GLED_PIN ,"RD1_GLED_PIN");
@@ -505,7 +743,10 @@ static int gpio_init(void)
     }
     else
     {
-        gpio_direction_input(RD2_D1_PIN);  //wiegand rd2_d1 set input
+//        gpio_direction_input(RD2_D1_PIN);  //wiegand rd2_d1 set input
+        irqno = gpio_to_irq(RD2_D1_PIN);
+        request_irq(irqno,RD2_D1IntHandler,
+                    IRQF_TRIGGER_RISING,"RD2_D1_PIN",NULL);
     }
     
     ret = gpio_request(RD2_D0_PIN ,"RD2_D0_PIN");
@@ -516,7 +757,10 @@ static int gpio_init(void)
     }
     else
     {
-        gpio_direction_input(RD2_D0_PIN);  //wiegand rd2_d0 set input  
+//        gpio_direction_input(RD2_D0_PIN);  //wiegand rd2_d0 set input 
+        irqno = gpio_to_irq(RD2_D0_PIN);
+        request_irq(irqno,RD2_D0IntHandler,
+                    IRQF_TRIGGER_RISING,"RD2_D0_PIN",NULL);
     }
       
     ret = gpio_request(RD2_GLED_PIN ,"RD2_GLED_PIN");
@@ -779,7 +1023,6 @@ module_exit(test_drv_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("WANG");
-
 
 
 
