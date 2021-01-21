@@ -47,9 +47,9 @@ if(! isset($id)) {
                 </div>
                 <ul class="nav">
                     <li <?php echo ($id == 0) ? 'class="nav-item active"' : '' ?>>
-                        <a class="nav-link active" href="./?/dash">
+                        <a class="nav-link active" href="/admin/phpliteadmin.php">
                             <i class="nc-icon nc-chart-pie-35"></i>
-                            <p>Dashboard</p>
+                            <p>DB</p>
                         </a>
                     </li>
                     <li <?php echo ($id == 1) ? 'class="nav-item active"' : '' ?>>
@@ -94,6 +94,13 @@ if(! isset($id)) {
                             <p>Upgrade to PRO</p>
                         </a>
                     </li> -->
+
+                    <li <?php echo ($id == 0) ? 'class="nav-item active"' : '' ?>>
+                        <a class="nav-link active" href="/admin/phpliteadmin.php">
+                            <i class="nc-icon nc-chart-pie-35"></i>
+                            <p>DB</p>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

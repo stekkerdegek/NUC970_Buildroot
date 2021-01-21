@@ -1,16 +1,29 @@
 
 
-Comments on making match on the NK-980IoT
+Comments on making new firmware for Match2
 
-In the nuwriter dir are the images, that can be used to flash to the board.  
+Install NuWriter command tool
+https://github.com/OpenNuvoton/NUC980_NuWriter_CMD
+following instructions asume NuWriter is in a directory next to this project
+
+In the nuwriter directory are pre-build images, that can be used to flash to the board.  
 When the cli version of nuwriter is used, you can use ``` sudo ../NUC980_NuWriter_CMD/nuwriter nuwriter/flash.ini ```
-uImage contains a prototype webapp using lighttpd and php, it uses dhcp to get an network adress
+uImage contains a webserver lighttpd and php, it uses dhcp to get an network adress
+maasland_app.yaffs2 contains the web application to control Match2
 
-After buildroot is run, the new images can be writen with
-sudo ../NUC980_NuWriter_CMD/nuwriter nuwriter/fresh.ini
+To customize the firmware, changes can be made by rebuilding buildroot   
+In the overlay directory are configuration files in /etc/   
+Some custom scripts go to /scripts/  
+maasland_app contains the web application, and is a subtree of https://github.com/pjeutr/MatchApp.git
 
-In the overlay dir are configuration files in /etc/
-And the webapp is in /var/www
+1) run 'make match_defconfig'
+2) run 'make menuconfig' to adjust software
+3) run 'make'
+
+After buildroot has been build, the new images can be writen with
+``` sudo ../NUC980_NuWriter_CMD/nuwriter nuwriter/fresh.ini ```
+
+
 
 
 -------
