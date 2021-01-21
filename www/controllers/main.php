@@ -31,3 +31,10 @@ function gpio_state() {
 
     return html('main.html.php');
 }
+
+function canKeyOpenDoor($key, $door) {
+	if($key == "00010011101100010011011101") {
+		return true;
+	}
+	return false;
+}
