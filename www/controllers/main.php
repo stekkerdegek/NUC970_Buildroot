@@ -29,7 +29,7 @@ function gpio_state() {
 	shell_exec('echo out >/sys/class/gpio/gpio'.$id.'/direction');
 	shell_exec('echo '.$state.' >/sys/class/gpio/gpio'.$id.'/value');
 
-    return html('main.html.php');
+    return html('dashboard.html.php');
 }
 
 function canKeyOpenDoor($key, $door) {
