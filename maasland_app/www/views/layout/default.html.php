@@ -47,9 +47,9 @@ if(! isset($id)) {
                 </div>
                 <ul class="nav">
                     <li <?php echo ($id == 0) ? 'class="nav-item active"' : '' ?>>
-                        <a class="nav-link active" href="/admin/phpliteadmin.php">
+                        <a class="nav-link active" href="./?/dash">
                             <i class="nc-icon nc-chart-pie-35"></i>
-                            <p>DB</p>
+                            <p>Dashboard</p>
                         </a>
                     </li>
                     <li <?php echo ($id == 1) ? 'class="nav-item active"' : '' ?>>

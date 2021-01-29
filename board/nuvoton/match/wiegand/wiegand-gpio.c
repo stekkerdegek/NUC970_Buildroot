@@ -1,7 +1,12 @@
 /* wiegand-gpio.c
  *
  * Wiegand driver using GPIO an interrupts.
- *
+ * 26 P FFFF FFFF AAAA AAAA AAAA AAAA P
+ *    E EEEE EEEE EEEE XXXX XXXX XXXX O
+ * 37 P SSSS SSSS FFFF AAAA AAA AAAA AAAA AAAA AAAA P
+ *    P FFFF FFFF FFFF FFFF CCC CCCC CCCC CCCC CCCC P
+ *    E XXXX XXXX XXXX XXXX XX..................
+ *         ..................XX XXXX XXXX XXXX XXXX O
  */
 
 /* Standard headers for LKMs */
@@ -24,20 +29,15 @@
 #define MAX_WIEGAND_BYTES 6
 #define MIN_PULSE_INTERVAL_USEC 700
 
-// #define GPIO_WIEGAND_D0 NUC980_PA1
-// #define GPIO_WIEGAND_D1 NUC980_PA0
-#define GPIO_WIEGAND_D0 NUC980_PA9
-#define GPIO_WIEGAND_D1 NUC980_PA8
+#define RD1_D1_PIN     NUC980_PA0   //reader1 d1 input
+#define RD1_D0_PIN     NUC980_PA1   //reader1 d0 input
+#define RD1_GLED_PIN   NUC980_PA2   //reader1 gled output
+#define RD1_RLED_PIN   NUC980_PA3   //reader1 rled output
 
-// #define RD1_D1_PIN     NUC980_PA0   //reader1 d1 input
-// #define RD1_D0_PIN     NUC980_PA1   //reader1 d0 input
-// #define RD1_GLED_PIN   NUC980_PA2   //reader1 gled output
-// #define RD1_RLED_PIN   NUC980_PA3   //reader1 rled output
-
-// #define RD2_D1_PIN     NUC980_PA8   //reader2 d1 input
-// #define RD2_D0_PIN     NUC980_PA9   //reader2 d0 input
-// #define RD2_GLED_PIN   NUC980_PA10  //reader2 gled output
-// #define RD2_RLED_PIN   NUC980_PA11  //reader2 rled output
+#define RD2_D1_PIN     NUC980_PA8   //reader2 d1 input
+#define RD2_D0_PIN     NUC980_PA9   //reader2 d0 input
+#define RD2_GLED_PIN   NUC980_PA10  //reader2 gled output
+#define RD2_RLED_PIN   NUC980_PA11  //reader2 rled output
 #define OUT12V_PIN     NUC980_PE10  //output 12v control output
 
 static struct wiegand
@@ -50,6 +50,7 @@ static struct wiegand
   int readNum;
   unsigned int lastFacilityCode;
   unsigned int lastCardNumber;
+  int usedReader;
   bool lastDecoded;
   char lastBuffer[MAX_WIEGAND_BYTES];
   int numBits;
@@ -59,6 +60,23 @@ wiegand;
 
 
 static struct timer_list timer;
+
+int strbin2i(char* s) {
+  unsigned char *p = s ;
+  unsigned int   r = 0 ;
+  unsigned char  c     ;
+
+  while (p && *p ) {
+    c = *p++;
+
+    if      ( c == '0' ) { r = (r<<1)     ; } // shift 1 bit left and add 0
+    else if ( c == '1' ) { r = (r<<1) + 1 ; } // shift 1 bit left and add 1
+    else                 { break          ; } // bail on oinvalid character
+
+  }
+
+  return (int)r;
+}
 
 static int printbinary(char *buf, unsigned long x, int nbits)
 {
@@ -94,10 +112,11 @@ static ssize_t wiegandShow(
   static char wiegand_buf[MAX_WIEGAND_BYTES * 8];
   print_wiegand_data(wiegand_buf, wiegand.lastBuffer, wiegand.numBits);
 
-
   return sprintf(
-    buf, "%.5d:%s\n",
+    buf, "%.5d:%d:%d:%s\n",
     wiegand.readNum,
+    wiegand.lastCardNumber,
+    wiegand.usedReader,
     wiegand_buf
   );
 }
@@ -158,16 +177,16 @@ bool checkParity(char *buffer, int numBytes, int parityCheck)
   return (parity % 2) == 1;
 }
 
-
+/* is called bit by bit */
 void wiegand_timer(unsigned long data)
 {
   char *lcn;
   char buf[MAX_WIEGAND_BYTES * 8];
   size_t i;
-  int nr;
+
   struct wiegand *w = (struct wiegand *) data;
   int numBytes = ((w->currentBit -1) / 8 )+ 1;
-  int endParity = w->buffer[w->currentBit / 8] & (0x80 >> w->currentBit % 8);
+  int endParity = -1;
 
   printk("wiegand read complete\n");
 
@@ -179,25 +198,26 @@ void wiegand_timer(unsigned long data)
   w->lastDecoded = false;
   w->readNum++;
 
-  sscanf(buf, "%d", &nr);
   print_wiegand_data(buf, w->buffer, w->numBits);
-  printk("new read available [%d]: %s\n",  w->numBits, buf);
-  printk("en [%s]: %d\n",  buf, nr);
+  endParity = buf[w->currentBit / 8] & (0x80 >> w->currentBit % 8);
+
+  printk("new read available [%d]bits [%d]bytes: %s\n",  w->numBits, numBytes, buf);
 
   //check the start parity
-  if (checkParity(w->buffer, numBytes, w->startParity))
+  if (checkParity(buf, numBytes, w->startParity))
   {
+   printk("%s %d-%d \n", buf, numBytes, w->startParity);
    printk("start parity check failed\n");
-   wiegand_clear(w);
-   return;
+   //wiegand_clear(w);
+   //return;
   }
-
   //check the end parity
-  if (!checkParity(&w->buffer[numBytes], numBytes, endParity))
+  if (!checkParity(&buf[numBytes], numBytes, endParity))
   {
+   printk("%s %d-%d \n", &buf[numBytes], numBytes, endParity);
    printk("end parity check failed\n");
-   wiegand_clear(w);
-   return;
+   //wiegand_clear(w);
+   //return;
   }
 
   w->lastDecoded = true;
@@ -207,14 +227,25 @@ void wiegand_timer(unsigned long data)
   //note relies on 32 bit architecture
   w->lastCardNumber = 0;
   lcn = (char *)&w->lastCardNumber;
-  lcn[0] = w->buffer[2];
-  lcn[1] = w->buffer[1];
+  lcn[0] = buf[2];
+  lcn[1] = buf[1];
+  w->readNum++;
+
+  //hack, parity fails for some reason
+  //so, just remove first and last bit. And we have the correct number
+  lcn = &buf[1]; // remove first char
+  lcn[w->numBits - 2] = '\0'; // remove last char
+  //sscanf(lcn, "%i", &finalNumber );
+  //printbinary(finalNumber, &lcn, w->numBits);  
+  w->lastCardNumber = strbin2i(lcn);
 
   printk(
     "decoded data: %d:%d\n",
     w->lastFacilityCode,
     w->lastCardNumber);
 
+  //turn off the green led
+  //at91_set_gpio_value(AT91_PIN_PB9, 0);
 
   //reset for next reading
   wiegand_clear(w);
@@ -230,30 +261,30 @@ int init_module()
 
   wiegand_init(&wiegand);
 
-  ret = gpio_request(GPIO_WIEGAND_D0, "wiegand-d0");
+  ret = gpio_request(RD1_D0_PIN, "wiegand-d0");
   if (ret)
       return ret;
 
-  ret = gpio_request(GPIO_WIEGAND_D1, "wiegand-d1");
+  ret = gpio_request(RD1_D1_PIN, "wiegand-d1");
   if (ret)
       return ret;
 
-  ret = gpio_direction_input(GPIO_WIEGAND_D0);
+  ret = gpio_direction_input(RD1_D0_PIN);
   if (ret)
       return ret;
 
-  ret = gpio_direction_input(GPIO_WIEGAND_D1);
+  ret = gpio_direction_input(RD1_D1_PIN);
   if (ret)
       return ret;
 
 
-  irq_d0 = gpio_to_irq(GPIO_WIEGAND_D0);
+  irq_d0 = gpio_to_irq(RD1_D0_PIN);
   if (irq_d0 < 0) {
     printk("can't request irq for D0 gpio\n");
     return irq_d0;
   }
 
-  irq_d1 = gpio_to_irq(GPIO_WIEGAND_D1);
+  irq_d1 = gpio_to_irq(RD1_D1_PIN);
   if (irq_d1 < 0) {
     printk("can't request irq for D1 gpio\n");
     return irq_d1;
@@ -326,8 +357,8 @@ irqreturn_t wiegand_data_isr(int irq, void *dev_id)
 
 
 //
-  // int data0 = gpio_get_value(GPIO_WIEGAND_D0);
-  // int data1 = gpio_get_value(GPIO_WIEGAND_D1);
+  // int data0 = gpio_get_value(RD1_D0_PIN);
+  // int data1 = gpio_get_value(RD1_D1_PIN);
   // int value = ((data0 == 1) && (data1 == 0)) ? 0x80 : 0;
 
   // if ((data0 == 1) && (data1 == 1))
@@ -337,6 +368,16 @@ irqreturn_t wiegand_data_isr(int irq, void *dev_id)
 
   //stop the end of transfer timer
   del_timer(&timer);
+
+
+  //this is the start parity bit
+  if (w->currentBit == 0)
+  {
+    //turn on led
+    //at91_set_gpio_value(AT91_PIN_PB28, 1);
+    w->startParity = value;
+    printk("startParity %d\n", value);
+  }
 
   if (w->currentBit <=  MAX_WIEGAND_BYTES * 8) {
     w->buffer[(w->currentBit) / 8] |= (value >> ((w->currentBit) % 8));
@@ -360,8 +401,8 @@ void cleanup_module()
   free_irq(irq_d0, &wiegand);
   free_irq(irq_d1, &wiegand);
 
-  gpio_free(GPIO_WIEGAND_D0);
-  gpio_free(GPIO_WIEGAND_D1);
+  gpio_free(RD1_D0_PIN);
+  gpio_free(RD1_D1_PIN);
 
 
 
