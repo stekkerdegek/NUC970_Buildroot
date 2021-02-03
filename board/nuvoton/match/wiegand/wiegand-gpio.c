@@ -7,6 +7,10 @@
  *    P FFFF FFFF FFFF FFFF CCC CCCC CCCC CCCC CCCC P
  *    E XXXX XXXX XXXX XXXX XX..................
  *         ..................XX XXXX XXXX XXXX XXXX O
+ *
+ *
+ * Creates /sys/kernel/wiegand/read
+ *
  */
 
 /* Standard headers for LKMs */
@@ -31,13 +35,13 @@
 
 #define RD1_D1_PIN     NUC980_PA0   //reader1 d1 input
 #define RD1_D0_PIN     NUC980_PA1   //reader1 d0 input
-#define RD1_GLED_PIN   NUC980_PA2   //reader1 gled output
-#define RD1_RLED_PIN   NUC980_PA3   //reader1 rled output
+// #define RD1_GLED_PIN   NUC980_PA2   //reader1 gled output
+// #define RD1_RLED_PIN   NUC980_PA3   //reader1 rled output
 
 #define RD2_D1_PIN     NUC980_PA8   //reader2 d1 input
 #define RD2_D0_PIN     NUC980_PA9   //reader2 d0 input
-#define RD2_GLED_PIN   NUC980_PA10  //reader2 gled output
-#define RD2_RLED_PIN   NUC980_PA11  //reader2 rled output
+// #define RD2_GLED_PIN   NUC980_PA10  //reader2 gled output
+// #define RD2_RLED_PIN   NUC980_PA11  //reader2 rled output
 #define OUT12V_PIN     NUC980_PE10  //output 12v control output
 
 static struct wiegand
@@ -105,7 +109,7 @@ void print_wiegand_data(char* output, char* buf, int nbits) {
   }
 }
 
-
+/* returns the data when module is called */
 static ssize_t wiegandShow(
   struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
@@ -245,13 +249,13 @@ void wiegand_timer(unsigned long data)
     w->lastCardNumber);
 
   //turn off the green led
-  //at91_set_gpio_value(AT91_PIN_PB9, 0);
+  //set_gpio_value(RD1_GLED_PIN, 0);
 
   //reset for next reading
   wiegand_clear(w);
 }
 
-static int irq_d0, irq_d1;
+static int irq_rd1_d0, irq_rd1_d1, irq_rd2_d0, irq_rd2_d1;
 
 int init_module()
 {
@@ -261,46 +265,75 @@ int init_module()
 
   wiegand_init(&wiegand);
 
-  ret = gpio_request(RD1_D0_PIN, "wiegand-d0");
-  if (ret)
+  ret = gpio_request(RD1_D0_PIN, "RD1_D0_PIN");
+  if (ret) {
+      printk("can not open GPIO for RD1_D0_PIN\n");
       return ret;
-
-  ret = gpio_request(RD1_D1_PIN, "wiegand-d1");
-  if (ret)
+  }
+  ret = gpio_request(RD1_D1_PIN, "RD1_D1_PIN");
+  if (ret) {
+      printk("can not open GPIO for RD1_D1_PIN\n");
       return ret;
-
-  ret = gpio_direction_input(RD1_D0_PIN);
-  if (ret)
+  }
+  ret = gpio_request(RD2_D0_PIN, "RD2_D0_PIN");
+  if (ret) {
+      printk("can not open GPIO for RD2_D0_PIN\n");
       return ret;
-
-  ret = gpio_direction_input(RD1_D1_PIN);
-  if (ret)
+  }
+  ret = gpio_request(RD2_D1_PIN, "RD2_D1_PIN");
+  if (ret) {
+      printk("can not open GPIO for RD2_D1_PIN\n");
       return ret;
-
-
-  irq_d0 = gpio_to_irq(RD1_D0_PIN);
-  if (irq_d0 < 0) {
-    printk("can't request irq for D0 gpio\n");
-    return irq_d0;
   }
 
-  irq_d1 = gpio_to_irq(RD1_D1_PIN);
-  if (irq_d1 < 0) {
+  gpio_direction_input(RD1_D0_PIN);
+  gpio_direction_input(RD1_D1_PIN);
+  gpio_direction_input(RD2_D0_PIN);
+  gpio_direction_input(RD2_D1_PIN);
+
+  irq_rd1_d0 = gpio_to_irq(RD1_D0_PIN);
+  if (irq_rd1_d0 < 0) {
+    printk("can't request irq for D0 gpio\n");
+    return irq_rd1_d0;
+  }
+  irq_rd1_d1 = gpio_to_irq(RD1_D1_PIN);
+  if (irq_rd1_d1 < 0) {
     printk("can't request irq for D1 gpio\n");
-    return irq_d1;
+    return irq_rd1_d1;
+  }
+  irq_rd2_d0 = gpio_to_irq(RD2_D0_PIN);
+  if (irq_rd2_d0 < 0) {
+    printk("can't request irq for rd2_d0 gpio\n");
+    return irq_rd2_d0;
+  }
+  irq_rd2_d1 = gpio_to_irq(RD2_D1_PIN);
+  if (irq_rd2_d1 < 0) {
+    printk("can't request irq for rd2_d1 gpio\n");
+    return irq_rd2_d1;
   }
 
 
   /** Request IRQ for pin */
-  if(request_any_context_irq(irq_d0, wiegand_data_isr, IRQF_SHARED | IRQF_TRIGGER_FALLING, "wiegand_data", &wiegand))
+  if(request_any_context_irq(irq_rd1_d0, wiegand_data_isr, IRQF_SHARED | IRQF_TRIGGER_FALLING, "wiegand_data", &wiegand))
   {
-    printk(KERN_DEBUG"Can't register IRQ %d\n", irq_d0);
+    printk(KERN_DEBUG"Can't register IRQ %d\n", irq_rd1_d0);
     return -EIO;
   }
 
-  if(request_any_context_irq(irq_d1, wiegand_data_isr, IRQF_SHARED | IRQF_TRIGGER_FALLING, "wiegand_data", &wiegand))
+  if(request_any_context_irq(irq_rd1_d1, wiegand_data_isr, IRQF_SHARED | IRQF_TRIGGER_FALLING, "wiegand_data", &wiegand))
   {
-    printk(KERN_DEBUG"Can't register IRQ %d\n", irq_d1);
+    printk(KERN_DEBUG"Can't register IRQ %d\n", irq_rd1_d1);
+    return -EIO;
+  }
+    if(request_any_context_irq(irq_rd2_d0, wiegand_data_isr, IRQF_SHARED | IRQF_TRIGGER_FALLING, "wiegand_data", &wiegand))
+  {
+    printk(KERN_DEBUG"Can't register IRQ %d\n", irq_rd2_d0);
+    return -EIO;
+  }
+
+  if(request_any_context_irq(irq_rd2_d1, wiegand_data_isr, IRQF_SHARED | IRQF_TRIGGER_FALLING, "wiegand_data", &wiegand))
+  {
+    printk(KERN_DEBUG"Can't register IRQ %d\n", irq_rd2_d1);
     return -EIO;
   }
 
@@ -345,8 +378,18 @@ irqreturn_t wiegand_data_isr(int irq, void *dev_id)
   struct wiegand *w = (struct wiegand *)dev_id;
   struct timespec ts, interval;
   static struct timespec lastts;
-  int value = (irq == irq_d1) ? 0x80 : 0;
+  int value = (irq == irq_rd2_d1) ? 0x80 : 0;
 
+  if (irq == irq_rd1_d0 || irq == irq_rd1_d1)
+  {
+    w->usedReader = 1;
+  }
+  if (irq == irq_rd2_d0 || irq == irq_rd2_d1)
+  {
+    w->usedReader = 2;
+  }
+
+  //TODO avoid pulses too small?
   getnstimeofday(&ts);
   interval = timespec_sub(ts,lastts);
   lastts = ts;
@@ -354,9 +397,6 @@ irqreturn_t wiegand_data_isr(int irq, void *dev_id)
     return IRQ_HANDLED;
   }
 
-
-
-//
   // int data0 = gpio_get_value(RD1_D0_PIN);
   // int data1 = gpio_get_value(RD1_D1_PIN);
   // int value = ((data0 == 1) && (data1 == 0)) ? 0x80 : 0;
@@ -369,12 +409,11 @@ irqreturn_t wiegand_data_isr(int irq, void *dev_id)
   //stop the end of transfer timer
   del_timer(&timer);
 
-
   //this is the start parity bit
   if (w->currentBit == 0)
   {
     //turn on led
-    //at91_set_gpio_value(AT91_PIN_PB28, 1);
+    //set_gpio_value(RD1_GLED_PIN, 1);
     w->startParity = value;
     printk("startParity %d\n", value);
   }
@@ -398,11 +437,15 @@ void cleanup_module()
   kobject_put(wiegandKObj);
   del_timer(&timer);
 
-  free_irq(irq_d0, &wiegand);
-  free_irq(irq_d1, &wiegand);
+  free_irq(irq_rd1_d0, &wiegand);
+  free_irq(irq_rd1_d1, &wiegand);
+  free_irq(irq_rd2_d0, &wiegand);
+  free_irq(irq_rd2_d1, &wiegand);
 
   gpio_free(RD1_D0_PIN);
   gpio_free(RD1_D1_PIN);
+  gpio_free(RD2_D0_PIN);
+  gpio_free(RD2_D1_PIN);
 
 
 
