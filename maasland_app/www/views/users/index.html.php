@@ -16,20 +16,22 @@ set('title', 'Users');
                             <thead>
                                 <th>ID</th>
                                 <th>Name</th>
+                                <th>Keycode</th>
                                 <th>Group</th>
                                 <th>Last seen</th>
                                 <th>Action</th>
                             </thead>
                             <tbody>
-<?php foreach ($users as $user) { ?>
+<?php foreach ($users as $row) { ?>
 <tr>
-	<td><?= $user->id ?></td>
-    <td><?= link_to($user->name, 'users', $user->id) ?></td>
-    <td></td>
-    <td><?= $user->last_seen ?></td>
-    <td><?= iconLink_to("Edit", 'users/'.$user->id.'/edit', 'btn-sm') ?>
+	<td><?= $row->id ?></td>
+    <td><?= $row->name ?></td>
+    <td><?= $row->keycode ?></td>
+    <td><?= $row->group_name ?></td>
+    <td><?= $row->last_seen ?></td>
+    <td><?= iconLink_to("Edit", 'users/'.$row->id.'/edit', 'btn-sm', null) ?>
     	&nbsp;
-    	<?= deleteLink_to('Delete', 'users', $user->id) ?>
+    	<?= deleteLink_to('Delete', 'users', $row->id) ?>
 </tr>
 <?php } ?>
                             </tbody>
