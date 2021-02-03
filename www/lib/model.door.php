@@ -59,11 +59,7 @@ function door_columns() {
     return array('name', 'created_at', 'updated_at');
 }
 
-// function door_data_filters() {
-//     return array(
-//         'door[name]' => FILTER_SANITIZE_SPECIAL_CHARS,
-//         'door[user_id]' => array("filter"  => FILTER_VALIDATE_INT,
-//                              "flags"   => FILTER_FLAG_ARRAY,
-//                              "options" => array("min_range" => 1)),
-//     );
-// }
+
+
+
+

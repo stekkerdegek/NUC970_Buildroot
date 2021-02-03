@@ -10,22 +10,10 @@ set('title', 'Dashboard');
                 <div class="card">
                     <div class="card-header">
                         <h4 class="card-title">Master controller</h4>
-                        <p class="card-category">Turn leds on/off on the nuc board gpio 40&45 </p>
-                    
-                        <center>
-                        Red:
-
-                        <a class="btn btn-info btn-sm" href="/?/gpio/45/0">On</a>
-                        <a class="btn btn-danger btn-sm" href="/?/gpio/45/1">Off</a>
-
-                        Yellow:
-                        <a class="btn btn-info btn-sm" href="/?/gpio/40/0">On</a>
-                        <a class="btn btn-danger btn-sm" href="/?/gpio/40/1">Off</a>
-                               
-                        </center>
-
-                        <a href="https://docs.google.com/document/d/1ZOc3w04Ov9EECDrhrmd3qmBAxG5lbiUyGuRfasSbtHw/edit" target="docs">Here</a> you can find extra documentation
-
+                        <p class="card-category">Open a door directly<br>
+                            <a class="btn btn-info btn-large" href="/?/door/1">Open Door 1</a>
+                            <a class="btn btn-info btn-large" href="/?/door/2">Open Door 2</a>
+                        </p>
                     </div>
                     <div class="card-body">
                                 This controller has
@@ -34,10 +22,10 @@ set('title', 'Dashboard');
                                 <span>Hardware</span>
 
                                 <ul>
-                                    <li>2 relays inputs - to connect to doorlocks</li>
+                                    <li>2 relays outputs - to connect to doorlocks</li>
                                     <li>2 wiegand inputs - to connect to keypad or NFC reader</li>
                                     <li>UTP connector - to connect to an LAN</li>
-                                    <li>A voltage in - to connect 12 or 24V</li>
+                                    <li>A voltage in - to connect 8-24VDC</li>
                                 </ul>
 
                             </p>
@@ -56,7 +44,7 @@ set('title', 'Dashboard');
                                     <br>
                                     <br>
                                     <small>
-                                        - these pages are mockups, to show future possibilities
+                                         <a href="https://docs.google.com/document/d/1ZOc3w04Ov9EECDrhrmd3qmBAxG5lbiUyGuRfasSbtHw/edit" target="docs">Here</a> you can find extra documentation
                                     </small>
                                 </p>
                             </blockquote>
