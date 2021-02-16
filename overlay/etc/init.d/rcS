@@ -29,5 +29,6 @@ done
 #insmod /scripts/match2_test/drv/test_drv.ko
 #echo /scripts/match2_test/user/ wiegand
 echo insmod /scripts/wiegand-gpio.ko
-echo php -f /maasland_app/scripts/match_listener.php
+echo "php -f /maasland_app/scripts/match_listener.php >> match_listener.log &"
+echo gdb /scripts/wiegand-gpio.ko
 

@@ -62,3 +62,5 @@ function make_user_obj($params, $obj = null) {
 function user_columns() {
     return array('name', 'keycode', 'group_id', 'last_seen', 'remarks');
 }
+
+?>
