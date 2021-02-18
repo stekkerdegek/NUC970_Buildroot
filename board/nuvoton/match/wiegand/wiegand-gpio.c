@@ -177,6 +177,7 @@ bool checkParity(char *buffer, int numBytes, int parityCheck)
       }
       mask >>= 1;
     }
+    printk("v=%d:%d\t", byte, parity);
   }
   return (parity % 2) == 1;
 }
@@ -312,7 +313,6 @@ int init_module()
     return irq_rd2_d1;
   }
 
-
   /** Request IRQ for pin */
   if(request_any_context_irq(irq_rd1_d0, wiegand_data_isr, IRQF_SHARED | IRQF_TRIGGER_FALLING, "wiegand_data", &wiegand))
   {
@@ -378,7 +378,9 @@ irqreturn_t wiegand_data_isr(int irq, void *dev_id)
   struct wiegand *w = (struct wiegand *)dev_id;
   struct timespec ts, interval;
   static struct timespec lastts;
-  int value = (irq == irq_rd2_d1) ? 0x80 : 0;
+  int value = (irq == irq_rd2_d1 || irq == irq_rd1_d1) ? 0x80 : 0;
+
+  printk("v=%d:%d\t", w->currentBit, value);
 
   if (irq == irq_rd1_d0 || irq == irq_rd1_d1)
   {
@@ -396,15 +398,6 @@ irqreturn_t wiegand_data_isr(int irq, void *dev_id)
   if ((interval.tv_sec == 0 ) && (interval.tv_nsec < MIN_PULSE_INTERVAL_USEC * 1000)) {
     return IRQ_HANDLED;
   }
-
-  // int data0 = gpio_get_value(RD1_D0_PIN);
-  // int data1 = gpio_get_value(RD1_D1_PIN);
-  // int value = ((data0 == 1) && (data1 == 0)) ? 0x80 : 0;
-
-  // if ((data0 == 1) && (data1 == 1))
-  // { //rising edge, ignore
-    // return IRQ_HANDLED;
-  // }
 
   //stop the end of transfer timer
   del_timer(&timer);
@@ -446,8 +439,6 @@ void cleanup_module()
   gpio_free(RD1_D1_PIN);
   gpio_free(RD2_D0_PIN);
   gpio_free(RD2_D1_PIN);
-
-
 
   printk("wiegand removed\n");
 }

@@ -25,10 +25,10 @@ for i in /etc/init.d/S??* ;do
     esac
 done
 
-#insmod /lib/modules/4.4.207/test_drv.ko
+insmod /scripts/wiegand-gpio.ko
 #insmod /scripts/match2_test/drv/test_drv.ko
 #echo /scripts/match2_test/user/ wiegand
-echo insmod /scripts/wiegand-gpio.ko
-echo "php -f /maasland_app/scripts/match_listener.php >> match_listener.log &"
-echo gdb /scripts/wiegand-gpio.ko
+php -f /maasland_app/scripts/match_listener.php >> /var/log/match_listener.log &
+#cat /sys/module/wiegand_gpio/sections/.text
+#echo gdbserver --multi :10000
 
