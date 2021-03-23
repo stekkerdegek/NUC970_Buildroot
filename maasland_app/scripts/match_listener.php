@@ -7,6 +7,8 @@ require_once '/maasland_app/www/lib/model.report.php';
 require_once '/maasland_app/www/lib/model.user.php';
 require_once '/maasland_app/www/lib/model.door.php';
 
+// php -f /maasland_app/scripts/match_listener.php >> /var/log/match_listener.log &
+
 //initialize database connection
 $dsn = "sqlite:/maasland_app/www/db/dev.db";
 $db = new PDO($dsn);

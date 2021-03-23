@@ -63,6 +63,13 @@ static struct wiegand
 wiegand;
 
 
+//! Byte swap int
+int32_t swap_int32( int32_t val )
+{
+    val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF ); 
+    return (val << 16) | ((val >> 16) & 0xFFFF);
+}
+
 static struct timer_list timer;
 
 int strbin2i(char* s) {
@@ -78,9 +85,9 @@ int strbin2i(char* s) {
     else                 { break          ; } // bail on oinvalid character
 
   }
-
-  return (int)r;
+  return (int)swap_int32(r);
 }
+
 
 static int printbinary(char *buf, unsigned long x, int nbits)
 {

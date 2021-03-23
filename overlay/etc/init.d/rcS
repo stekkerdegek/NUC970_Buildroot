@@ -25,7 +25,8 @@ for i in /etc/init.d/S??* ;do
     esac
 done
 
-insmod /scripts/wiegand-gpio.ko
+echo insmod /scripts/wiegand-driver.ko
+#echo insmod /scripts/wiegand-gpio.ko
 #insmod /scripts/match2_test/drv/test_drv.ko
 #echo /scripts/match2_test/user/ wiegand
 php -f /maasland_app/scripts/match_listener.php >> /var/log/match_listener.log &
