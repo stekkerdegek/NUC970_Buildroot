@@ -69,7 +69,7 @@ static struct wiegand_io wiegand_set[] = {
 
 static void print_debug(unsigned long *data)
 {
-	printk("nr=%.5d keycode=%lu reader=%d\n",counter, *data, last_reader_nr);
+	printk("nr=%.5d keycode=%lu reader=%d\n",counter, keycode, last_reader_nr);
 }
 
 static unsigned char wiegand_26_to_keycode(unsigned long *data)
@@ -141,9 +141,9 @@ static unsigned char wiegand_unkown_to_keycode(unsigned long *data)
 	// pid conversion
 	pid = 0;	
 
-	printk(" %dbits\n",bit_count);
-	for(i = 1 ;i<bit_count-1;i++){
-		//printk("%d", wiegand_buffer[i]);
+	printk("%dbits\n",bit_count);
+	for(i = 1; i<bit_count-1; i++){
+		//
 		pid |= (0x01 & wiegand_buffer[i]) << (bit_count-i-2);
 	}
 	bit_count = 0;	
@@ -369,12 +369,6 @@ static unsigned wiegand_poll(struct file *file, poll_table *wait)
 static ssize_t wiegand_show(
   struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-  //static char wiegand_buf[MAX_WIEGAND_BYTES * 8];
-  //print_wiegand_data(wiegand_buf, wiegand.lastBuffer, wiegand.numBits);
-  //wiegand_26_to_keycode(&keycode);
-
-  //return 0;
-  //return sprintf(buf, "kees %d", reader_);
   return sprintf(
     buf, "%.5d:%lu:%d:%s\n",
     counter,
