@@ -10,6 +10,7 @@ class GVAR
     #define RELAY1_PIN     NUC980_PC4   //relay1 output
     public static $GPIO_DOOR1 = 68; //NUC980_PC4
     public static $GPIO_DOOR2 = 66; //NUC980_PC2
+    public static $GPIO_ALARM1 = 65; //NUC980_PC2
     public static $DOOR_TIMER = 2; //Door lock stays open for 2s
 
     //$RD1_RLED_PIN = 3; //NUC980_PA3   //reader1 rled output
@@ -56,8 +57,8 @@ function mylog($message) {
 
 function openDoor($reader) {
     //determine which reader is used, so we can select the proper led
-    $gled = -1;
-    $gid = -1;
+    $gled = 0;
+    $gid = 0;
 
     //determine the right door, assume reader1=door1, reader2=door2
     //TODO config reader2 to also open door 1?
@@ -69,7 +70,9 @@ function openDoor($reader) {
         $gled = GVAR::$RD2_GLED_PIN;
         $gid = GVAR::$GPIO_DOOR2;
     }
-
+    if($reader == 3) {
+        $gid = GVAR::$GPIO_ALARM1;
+    }
     mylog("Open Door GPIO=".$gid." reader=".$reader." LED=".$gled."\n");
     //open lock
     setGPIO($gid, 1);
@@ -124,7 +127,10 @@ function iconLink_to($name, $link, $style, $icon) {
 	$url = url_for($link);
     $fa = isset($icon) ? "<i class=\"fa $icon\"></i>" : "";
     
-    return "<a class=\"btn $style\" href=\"$url\">$fa $name</a>";    
+    return "<a rel=\"tooltip\" title=\"$name\" class=\"btn btn-success $style\" href=\"$url\"><i class=\"fa fa-edit\"></i>$name</a>";    
+
+    //return '<a href="#" rel="tooltip" title="Edit Profile" class="btn btn-success btn-link btn-xs"><i class="fa fa-edit"></i></a>';
+    //return "<a class=\"btn $style\" href=\"$url\">$fa $name</a>";    
 }
 
 function deleteLink_to($params = null) {
@@ -132,9 +138,15 @@ function deleteLink_to($params = null) {
     $name = array_shift($params);
     $url = call_user_func_array('url_for', $params);
     
-    return "<a class=\"btn btn-sm btn-danger\" href=\"$url\"
-    onclick=\"if (confirm('Are you sure?')) { var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href; var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'DELETE'); f.appendChild(m); f.submit(); };return false;\"
-    >$name</a>";    
+    //return '<a href="#" rel="tooltip" title="Remove" class="btn btn-danger btn-link"><i class="fa fa-times"></i></a>';
+
+    return "<a rel=\"tooltip\" title=\"$name\" class=\"btn btn-danger btn-link\" href=\"$url\"
+    onclick=\"app.areYouSure(this);return false;\"
+    ><i class=\"fa fa-times\"></i>$name</a>";  
+
+    // return "<a rel=\"tooltip\" title=\"$name\" class=\"btn btn-danger btn-link\" href=\"$url\"
+    // onclick=\"if (confirm('Are you sure?')) { var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href; var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'DELETE'); f.appendChild(m); f.submit(); };return false;\"
+    // ><i class=\"fa fa-times\"></i>$name</a>";    
 }
 
 function option_tag($id, $title, $act_id) {

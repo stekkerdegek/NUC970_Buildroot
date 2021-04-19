@@ -1,6 +1,6 @@
 <?php 
-set('id', 1);
-set('title', 'Users');
+set('id', 4);
+set('title', 'Timezones');
 ?>
 
 <div class="content">
@@ -9,29 +9,27 @@ set('title', 'Users');
             <div class="col-md-12">
                 <div class="card strpied-tabled-with-hover">
                     <div class="card-header ">
-                    	<?= iconLink_to('New user', 'users/new', 'btn-outline', 'fa-user') ?>
+                        <?= iconLink_to('Add Timezone', 'timezones/new', 'btn-outline', 'nc-icon nc-watch-time') ?>
                     </div>
                     <div class="card-body table-full-width table-responsive">
                         <table class="table table-hover table-striped">
                             <thead>
                                 <th>ID</th>
                                 <th>Name</th>
-                                <th>Keycode</th>
-                                <th>Group</th>
-                                <th>Last seen</th>
-                                <th>Action</th>
+                                <th>Start</th>
+                                <th>End</th>
                             </thead>
                             <tbody>
-<?php foreach ($users as $row) { ?>
+<?php foreach ($timezones as $row) { ?>
 <tr>
-	<td><?= $row->id ?></td>
+    <td><?= $row->id ?></td>
     <td><?= $row->name ?></td>
-    <td><?= $row->keycode ?></td>
-    <td><?= $row->group_name ?></td>
-    <td><?= $row->last_seen ?></td>
-    <td><?= iconLink_to("Edit", 'users/'.$row->id.'/edit', 'btn-link', null) ?>
-    	&nbsp;
-    	<?= deleteLink_to('Delete', 'users', $row->id) ?>
+    <td><?= $row->start //date("H:i", $row->start) ?></td>
+    <td><?= $row->end //date("H:i", $row->end) ?></td>
+    <!-- <td><?= link_to($row->name, 'timezones', $row->id) ?></td> -->
+    <td><?= iconLink_to("Edit", 'timezones/'.$row->id.'/edit', 'btn-link', null) ?>
+        &nbsp;
+        <?= deleteLink_to('Delete', 'timezones', $row->id) ?>
 </tr>
 <?php } ?>
                             </tbody>
@@ -42,4 +40,3 @@ set('title', 'Users');
         </div>
     </div>
 </div>
-
