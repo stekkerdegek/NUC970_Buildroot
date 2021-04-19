@@ -9,3 +9,5 @@ insmod /root/wiegand-gpio.ko
 gdbserver --multi :10000
 cat /sys/module/wiegand_gpio/sections/.text
 tail -f /var/log/match_listener.log
+avahi-browse -tpr _maasland._tcp 
+
