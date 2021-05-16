@@ -1,21 +1,9 @@
 <?php
 
-# PUT /controller/:id
-function switch_update() {
-    $id = filter_var(params('id'), FILTER_VALIDATE_INT);
-    error_log("switch_update controllerId=".$id);
-    error_log(print_r($_POST, true));
-
-    // $door_data = door_data_from_form();
-    // $door = get_door_or_404();
-    // $door = make_door_obj($door_data, $door);
-
-    // update_door_obj($door);
-    redirect('doors');
-}
-
 # GET /doors
 function doors_index() {
+    set('controllers', find_controllers());
+    //TODO put doors in controllers
     set('doors', find_doors());
     return html('doors/index.html.php');
 }
@@ -31,7 +19,7 @@ function doors_show() {
 function doors_edit() {
     $door = get_door_or_404();
     set('door', $door);
-    //set('authors', find_authors());
+    set('timezones', find_timezones());
     return html('doors/edit.html.php');
 }
 
@@ -49,7 +37,7 @@ function doors_update() {
 function doors_new() {
     $door_data = make_empty_obj(door_columns());
     set('door', make_door_obj($door_data));
-    //set('authors', find_authors());
+    set('timezones', find_timezones());
     return html('doors/new.html.php');
 }
 
