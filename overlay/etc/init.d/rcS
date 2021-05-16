@@ -25,6 +25,15 @@ for i in /etc/init.d/S??* ;do
     esac
 done
 
+# http://lists.buildroot.org/pipermail/buildroot/2016-January/150846.html
+# http://lists.busybox.net/pipermail/buildroot/2016-February/151270.html
+#/var/spool is link to /tmp => crontabs are not persistent over boot
+#mkdir -p /var/spool/cron/crontabs
+#cp /root/crontab /var/spool/cron/crontabs/root
+#Make cron work
+ln -s /var/cron /var/spool/cron
+start-stop-daemon -S -q -p /var/run/crond.pid --exec /usr/sbin/crond -- -l 8  
+
 insmod /scripts/wiegand-driver.ko
 #echo insmod /scripts/wiegand-gpio.ko
 #insmod /scripts/match2_test/drv/test_drv.ko
