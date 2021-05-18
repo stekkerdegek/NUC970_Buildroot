@@ -9,5 +9,8 @@
 
 mkyaffs2 --inband-tags maasland_app output/images/maasland_app.yaffs2
 
+mkfs.ubifs -d maasland_app -e 0x1f800 -c 2048 -m 0x800 -x lzo  -o output/images/maasland_app.ubifs
+#/home/pjeutr/nuvoton/matchOnNuc/output/host/usr/sbin/mkfs.ubifs -d /home/pjeutr/nuvoton/matchOnNuc/output/target -e 0x1f800 -c 2048 -m 0x800 -x lzo  -o /home/pjeutr/nuvoton/matchOnNuc/output/images/rootfs.ubifs
+
 #unyaffs2 --nuc970-ecclayout tempie/user.yaffs2 tempie
 #mkyaffs2 -b nuc970-bch --nuc970-ecclayout --inband-tags overlay/var/www output/images/user.yaffs2
