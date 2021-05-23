@@ -110,12 +110,6 @@ $timezone = date('O'); //+0200
                         </a>
                     </li>
                     <hr>
-                    <li <?php echo ($id == 6) ? 'class="nav-item active"' : 'class="nav-item "' ?>>
-                        <a class="nav-link" href="./?/events">
-                            <i class="nc-icon nc-notes"></i>
-                            <p>Events</p>
-                        </a>
-                    </li>
                     <li <?php echo ($id == 10) ? 'class="nav-item active"' : 'class="nav-item "' ?>>
                         <a class="nav-link" href="./?/gpio">
                             <i class="nc-icon nc-settings-gear-64"></i>
@@ -128,15 +122,9 @@ $timezone = date('O'); //+0200
                             <p>DB</p>
                         </a>
                     </li>
-                    <li <?php echo ($id == 12) ? 'class="nav-item active"' : 'class="nav-item "' ?>>
-                        <a class="nav-link" href="./?/main">
-                            <i class="nc-icon nc-alien-33"></i>
-                            <p>test</p>
-                        </a>
-                    </li>
                 </ul>
                 <div class="sidebar-footer">
-                    MatchApp v0.4
+                    Flexess Duo v0.4.1
                 </div>
             </div>
         </div>
@@ -164,7 +152,7 @@ $timezone = date('O'); //+0200
                     </button>
                     <div class="collapse navbar-collapse justify-content-between" id="navigation">
                         <ul class="nav navbar-nav ml-auto">
-                            <sub><div id="serverClock"><?= date("d-m-Y H:i:s");?></div></sub>
+                            <sub><div id="serverClock"><?= date("d-m-Y H:i:s");?> - <?= $timezone;?></div></sub>
                         </ul> 
                         <ul class="nav navbar-nav ml-auto">
                             <!--
@@ -204,17 +192,17 @@ $timezone = date('O'); //+0200
                                 </a>
                             </li>
                             <li>
-                                <a href="https://www.maaslandgroep.nl/contact" target="_blank">
+                                <a href="https://maaslandserver.com/flexessduo/contact" target="_blank">
                                     Contact
                                 </a>
                             </li>
                             <li>
-                                <a href="https://maaslandserver.com/" target="_blank">
+                                <a href="https://maaslandserver.com/flexessduo/faq" target="_blank">
                                     Faq
                                 </a>
                             </li>
                             <li>
-                                <a href="https://www.maaslandgroep.nl/nieuws" target="_blank">
+                                <a href="https://maaslandserver.com/flexessduo/blog" target="_blank">
                                     Blog
                                 </a>
                             </li>

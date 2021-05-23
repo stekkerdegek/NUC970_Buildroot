@@ -55,7 +55,7 @@ function checkAndHandleInputs() {
 }
 
 function checkAndHandleButton($gpio, $id, $controller_id) {
-    if(shell_exec("cat /sys/class/gpio/gpio".$gpio."/value") == 1) {
+    if(getGPIO($gpio) == 1) {
         $name = "Button ".$id;
         mylog("handleSwitch ".$name);
         //find what door to open
@@ -67,19 +67,32 @@ function checkAndHandleButton($gpio, $id, $controller_id) {
     }
 }
 function checkAndHandleSensor($gpio, $id, $controller_id) {
-    if(shell_exec("cat /sys/class/gpio/gpio".$gpio."/value") == 1) {
+    if(getGPIO($gpio) == 1) {
         $name = "Sensor ".$id;
         mylog("handleSensor ".$name);
+        $pollTime = 1; //interval for checking if the door is closed again.
+        $doorSensorTriggerTime =find_setting_by_name("alarm");
 
-        //TODO how to find out the sensor is open for 1min - 15min
-        //TODO how to disable alarm after sensor is closed again
+        //wait for the given trigger time, than check again
+        sleep($doorSensorTriggerTime);
+        if(getGPIO($gpio) == 1) {
+            //find what alarm to open
+            $alarm = find_alarm_for_sensor_id($id,$controller_id);
+            $gid = ($alarm == 1) ? GVAR::$GPIO_ALARM1 :GVAR::$GPIO_ALARM1;
+            setGPIO($gid, 1);
+            //save report
+            saveReport("Unkown", "Alarm ".$door->name." from ". $name);
 
-        //find what alarm to open
-        $alarm = find_alarm_for_sensor_id($id,$controller_id);
-        setGPIO($GPIO_ALARM1, 1);
-
-        //save report
-        saveReport("Unkown", "Alarm ".$door->name." from ". $name);
+            //check if the door is closed, to turn of the alarm
+            while(true) {
+                if(getGPIO($gpio) == 0) {
+                    setGPIO($gid, 0);
+                    saveReport("Unkown", "Alarm stopped for ".$door->name." from ". $name);
+                    break;
+                }
+                sleep($pollTime);
+            }
+        }
     }
 }
 
@@ -89,11 +102,13 @@ function handleUserAccess($user, $reader_id) {
     if(!empty($user->max_visits) && $user->visit_count > $user->max_visits) {
         return "Maximum visits reached:  visits = ".$user->max_visits;
     }
-    //Check end date for user 
+    //Check start/end date for user 
     $now = new DateTime();
+    $startDate = new DateTime($user->start_date);
     $endDate = new DateTime($user->end_date);
-    if($now > $endDate) {
-        return "Access has expired: End date = ".$user->end_date;
+    //if($now > $endDate) {
+    if ($now < $startDate || $now > $endDate) {
+        return "Access has expired: Start date = ".$user->start_date." End date = ".$user->end_date;
     }
 
     //APB, if the user is back within APB time, deny access
@@ -181,16 +196,8 @@ function openDoor($door_id, $reader_id) {
 *   returns true if state was changed
 */
 function openLock($door_id, $open) { 
-    $gid = 0;
-    //asign proper gpio's used for the door or Alarm
-    if($door_id == 1) {
-        $gid = GVAR::$GPIO_DOOR1;
-    }
-    if($door_id == 2) {
-        $gid = GVAR::$GPIO_DOOR2;
-    }
-    //
-    $currentValue = shell_exec("cat /sys/class/gpio/gpio".$gid."/value");
+    $gid = getDoorGPIO($door_id);
+    $currentValue = getGPIO($gid);
     //mylog("openLock ".$currentValue."=".$open."\n");
     if($currentValue != $open) {
         //mylog("STATE CHANGED=".$open);
@@ -199,6 +206,15 @@ function openLock($door_id, $open) {
     }
     //TODO open locks on other controllers
     return false;
+}
+
+/*
+*   Shorthands methods
+*/
+function getDoorGPIO($door_id) { 
+    if($door_id == 1) return GVAR::$GPIO_DOOR1;
+    if($door_id == 2) return GVAR::$GPIO_DOOR2;
+    return 0;
 }
 
 function setGPIO($gid, $state) {
@@ -213,4 +229,7 @@ function setGPIO($gid, $state) {
     return 1;    
 }
 
+function getGPIO($gpio) {
+    return shell_exec("cat /sys/class/gpio/gpio".$gpio."/value");
+}
 
