@@ -1,6 +1,10 @@
 <?php
 //TODO get timezone from settings in db
-date_default_timezone_set('Europe/Amsterdam');
+//date_default_timezone_set('Europe/Amsterdam');
+//date_default_timezone_set('Europe/London');
+//date_default_timezone_set('Australia/Sydney');
+$tz = "Europe/Amsterdam";
+date_default_timezone_set($tz);
 
 //Custom log
 function mylog($message) {
@@ -54,7 +58,7 @@ function link_to($params = null) {
     return "<a href=\"$url\">$name</a>";
 }
 
-function iconLink_to($name, $link, $style, $icon) {
+function iconLink_to($name, $link, $style, $icon = null) {
 	$url = url_for($link);
     $fa = isset($icon) ? "<i class=\"fa $icon\"></i>" : "<i class=\"fa fa-edit\"></i>";
     
@@ -81,8 +85,11 @@ function deleteLink_to($params = null) {
 }
 
 function print_date($timestamp) {
+    //return $timestamp;
     $dt = new DateTime($timestamp);
-    $dt->setTimezone(new DateTimeZone('Europe/Amsterdam'));
+    //Theorie, sqlite timestamp wordt UTC opgeslagen. Alles in php is met date_default_timezone_set gezet bovenaan ^
+    //Daarom moet voor display van sqlite gezette datums worden gecorigeerd Amsterdam +0200 => +0400
+    $dt->setTimezone(new DateTimeZone('+0400'));
     return $dt->format('d-m-Y H:i:s');
 }
 
