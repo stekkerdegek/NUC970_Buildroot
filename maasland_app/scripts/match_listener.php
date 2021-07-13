@@ -12,6 +12,7 @@ require_once '/maasland_app/www/lib/model.settings.php';
 require_once '/maasland_app/www/lib/model.door.php';
 require_once '/maasland_app/www/lib/model.controller.php';
 require_once '/maasland_app/www/lib/model.rule.php';
+require_once '/maasland_app/www/lib/model.timezone.php';
 
 // php -f /maasland_app/scripts/match_listener.php >> /var/log/match_listener.log &
 
@@ -46,7 +47,7 @@ while(true) {
 		$oldNr = $nr;
 		echo "Activity nr:key:reader:raw:switch ".$nr.":".$keycode.":".$reader."\n";
 
-		$actor = $keycode;
+		$actor = "unkown";
 		$action = "Reader ".$reader;
 
 		//get User for the key
@@ -57,7 +58,7 @@ while(true) {
 		} 
 		
 		//save report
-		saveReport($actor, $action);
+		saveReport($actor, $action, keyToHex($keycode));
 
 		//wait half a second, to avoid too much load on CPU
 		usleep(500000);
